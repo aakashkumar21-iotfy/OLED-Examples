@@ -28,17 +28,50 @@ void setup(){
 
 
 String in_string;
-int char_count = 0; // chars recieved till now
+bool cp;
+bool scrolling = false;
 
 void loop() {
   if( Serial.available() >0 ){
-    in_string = Serial.readString();
-    char_count += in_string.length();
-    if(char_count >172){
-      char_count = 0;
-      display.clearDisplay();
+    in_string = Serial.readString(); 
+    if(in_string[0] == '/'){
+      switch(in_string[1]){
+        case 'c': display.cp437(true); cp = true; break;
+        case 's': display.cp437(false); cp = false; break;
+        case 'd': display.clearDisplay(); display.display(); display.setCursor(0,0);  break;
+        case '1': display.setTextSize(1); break;
+        case '2': display.setTextSize(2); break;
+        case 'l': if(!scrolling){
+                    scrolling = true;
+                    display.startscrollleft(0x00, 0xFF);
+                  }
+                  else {
+                     scrolling = false;
+                     display.stopscroll();
+                  }
+                  break;
+        case 'r': if(!scrolling){
+                    scrolling = true;
+                    display.startscrollright(0x00, 0x00);
+                  }
+                  else {
+                     scrolling = false;
+                     display.stopscroll();
+                  }
+                  break;
+        
+      }
     }
-    display.print(in_string);
-    display.display();
+    else{
+      if(cp){
+        for(char &c: in_string) display.write(c);
+        display.display();
+      }
+      else{
+        display.print(in_string);
+        display.display();
+      }
+      
+    }
   }
 }
